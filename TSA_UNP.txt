@@ -1,0 +1,83 @@
+#Installing Libraries
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("TSA")
+install.packages("tseries")
+install.packages("fUnitRoots")
+install.packages("forecast")
+install.packages("lmtest")
+install.packages("gtools")
+install.packages("MLmetrics")
+
+#Importing Libraries
+library(readr)
+library(ggplot2)
+library(TSA)
+library(tseries)
+library(fUnitRoots)
+library(forecast)
+library(lmtest)
+library(gtools)
+library(MLmetrics)
+df <- read_csv("C:/Users/akank/OneDrive/Desktop/shampoo.txt")
+plot(df$Sales,type="o")
+
+#Converting into Time series 
+dfc <-ts(df[,2],start=2000,frequency=12)
+dfc
+plot(dfc,type="o")
+plot(decompose(dfc))
+tsdisplay(dfc,main="ACF-PACF-OBSERVERED PLOTS")
+ggseasonplot(dfc,year.labels = TRUE)
+points(y=dfc,x=time(dfc), pch=as.vector(season(dfc)))
+
+#Auto-Correlation and Partial Auto Correlation Function(ACF &  PACF)
+acf(dfc, lag.max = 36) 
+pacf(dfc, lag.max = 36)
+
+
+
+#Train and Test
+traindf<-ts(dfc[1:24],start=2000,frequency = 12)
+traindf  #67%
+acf(traindf)
+pacf(traindf)
+tsdisplay(traindf,main = "ACF-PACF-OBSERVERED PLOTS OF TRAIN")
+testdf<-ts(dfc[25:36],start=c(2002,01),frequency = 12)
+testdf   #33%
+adf.test(traindf)
+adf.test(testdf)
+
+#first order differencing  d=0
+dif=diff(traindf)
+dif
+acf(dif)
+pacf(dif)
+adf.test(dif)
+tsdisplay(dif,main="ACF-PACF-OBSERVED PLOTS OF DIFFERENCING")
+#second order differencing d=1
+dif2=diff(dif)
+dif2
+autoplot(dif2)
+acf(dif2)
+pacf(dif2)
+adf.test(dif2)
+tsdisplay(dif2)
+
+#Arima
+fit=Arima(traindf,c(1,0,1))   
+fit
+auto.arima(traindf)
+
+
+#Prediction
+pre<-predict(fit,12)
+pree<-round(pre$pred,1)
+pree
+
+
+length(pre$pred)
+
+#Mean Absolute Percentage Error
+map<-round(MAPE(traindf[13:24],pree),3)
+map #0.24
